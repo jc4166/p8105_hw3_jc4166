@@ -103,25 +103,19 @@ instacart_data_apples_coffic = instacart_data %>%
     select(product_name, order_dow, order_hour_of_day) %>%
     filter(product_name == c("Pink Lady Apples", "Coffee Ice Cream")) %>%
     group_by(product_name, order_dow) %>%
-    summarize(mean_hour = mean(order_hour_of_day))
-```
-
-instacart_data_apples_coffic = instacart_data %>% 
-  select(product_name, order_dow, order_hour_of_day) %>% 
-  filter(product_name == c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
-  group_by(product_name, order_dow) %>% 
-  summarize(mean_hour = mean(order_hour_of_day) %>% 
-  mutate(order_dow = case_when(
-    order_dow == "0" ~ "Sunday",
-    order_dow == "1" ~ "Monday",
-    order_dow == "2" ~ "Tuesday",
-    order_dow == "3" ~ "Wednesday",
-    order_dow == "4" ~ "Thursday",
-    order_dow == "5" ~ "Friday",
-    order_dow == "6" ~ "Saturday")
+    summarize(mean_hour = mean(order_hour_of_day)) %>%
+    mutate(order_dow = case_when(
+      order_dow == "0" ~ "Sunday",
+      order_dow == "1" ~ "Monday",
+      order_dow == "2" ~ "Tuesday",
+      order_dow == "3" ~ "Wednesday",
+      order_dow == "4" ~ "Thursday",
+      order_dow == "5" ~ "Friday",
+      order_dow == "6" ~ "Saturday")
     )
 
-instacart_data_apples_coffic %>% 
+instacart_data_apples_coffic_table = instacart_data_apples_coffic %>% 
   pivot_wider(
     names_from = "order_dow",
     values_from = "mean_hour")
+```
