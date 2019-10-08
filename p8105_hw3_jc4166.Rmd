@@ -1,0 +1,127 @@
+---
+title: "p8105_hw3_jc4166"
+author: "Jerri Chen"
+date: "2019-10-04"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Problem 1
+```{r}
+library(p8105.datasets)
+data("instacart")
+instacart_data = instacart
+```
+Instagart is a dataset that contains 15 variables and 1,384,551 entries describing Instacart customer orders. 
+
+- How many aisles are there, and which aisles are the most items ordered from?
+```{r message = FALSE}
+instacart_aisle = instacart_data %>%
+  select(aisle, aisle_id) %>% 
+  count(aisle, aisle_id, name = "n_aisle") %>% 
+  arrange(desc(n_aisle))
+```
+There are 134 aisles. The "fresh vegetables" aisle has the most orders, followed by "fresh fruits" and "packaged vegetables fruits."
+
+- Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+```{r message = FALSE}
+instacart_aisle_plot = instacart_aisle %>% 
+  filter(n_aisle > 10000) %>% 
+  mutate(rank = dense_rank(n_aisle))
+
+instacart_aisle_plot %>% 
+  ggplot(aes(x = rank, y = n_aisle)) + 
+  geom_point(aes(color = aisle)) +
+  labs(
+    title = "Most Popular Aisles",
+    x = "Popularity Rank",
+    y = "Number of Orders",
+    caption = "Data from Instacart")
+```
+There are 39 aisles with more than 10000 items ordered.
+(Need help to make it easier to read off plot which items are popular.)
+
+- Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
+```{r message = FALSE}
+instacart_data_baking = instacart_data %>% 
+  select(product_name, aisle) %>% 
+  filter(aisle == "baking ingredients") %>% 
+  count(aisle, product_name, name = "n_product") %>% 
+  arrange(desc(n_product)) %>% 
+  top_n(n = 3)
+```
+
+```{r message = FALSE}
+instacart_data_dog = instacart_data %>% 
+  select(product_name, aisle) %>% 
+  filter(aisle == "dog food care") %>% 
+  count(aisle, product_name, name = "n_product") %>% 
+  arrange(desc(n_product)) %>% 
+  top_n(n = 3)
+```
+
+```{r message = FALSE}
+instacart_data_pkgvegfruit = instacart_data %>% 
+  select(product_name, aisle) %>% 
+  filter(aisle == "packaged vegetables fruits") %>% 
+  count(aisle, product_name, name = "n_product") %>% 
+  arrange(desc(n_product)) %>% 
+  top_n(n = 3)
+```
+
+```{r message = FALSE}
+instacart_data_1c = instacart_data %>% 
+  select(product_name, aisle) %>% 
+  filter(
+    aisle == c("baking ingredients", "dog food care", "packaged vegetables fruits")
+  ) %>% 
+  count(aisle, product_name, name = "n_product") %>% 
+  arrange(desc(n_product)) %>%
+  group_by(aisle) %>% 
+  top_n(n = 3, wt = n_product)
+```
+These products and counts do not match the individual counts.
+..........
+instacart_data_1c = instacart_data %>% 
+  select(product_name, aisle) %>% 
+  filter(
+    aisle == c("baking ingredients", "dog food care", "packaged vegetables fruits")
+  ) %>% 
+  group_by(aisle) %>% 
+  count(aisle, product_name, name = "n_product") %>% 
+  arrange(desc(n_product)) %>% 
+  top_n(n = 3, wt = n_product)
+..........
+
+- Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+```{r}
+instacart_data_apples_coffic = instacart_data %>% 
+    select(product_name, order_dow, order_hour_of_day) %>%
+    filter(product_name == c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+    group_by(product_name, order_dow) %>%
+    summarize(mean_hour = mean(order_hour_of_day))
+```
+
+instacart_data_apples_coffic = instacart_data %>% 
+  select(product_name, order_dow, order_hour_of_day) %>% 
+  filter(product_name == c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day) %>% 
+  mutate(order_dow = case_when(
+    order_dow == "0" ~ "Sunday",
+    order_dow == "1" ~ "Monday",
+    order_dow == "2" ~ "Tuesday",
+    order_dow == "3" ~ "Wednesday",
+    order_dow == "4" ~ "Thursday",
+    order_dow == "5" ~ "Friday",
+    order_dow == "6" ~ "Saturday")
+    )
+
+instacart_data_apples_coffic %>% 
+  pivot_wider(
+    names_from = "order_dow",
+    values_from = "mean_hour")
