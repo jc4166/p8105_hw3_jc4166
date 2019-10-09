@@ -119,3 +119,16 @@ instacart_data_apples_coffic_table = instacart_data_apples_coffic %>%
     names_from = "order_dow",
     values_from = "mean_hour")
 ```
+
+## Problem 2
+```{r}
+library(p8105.datasets)
+data("brfss_smart2010")
+```
+
+```{r}
+brfss_smart2010_data = brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health")
+```
+
