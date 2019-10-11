@@ -8,6 +8,7 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(knitr)
 ```
 
 ## Problem 1
@@ -16,7 +17,7 @@ library(p8105.datasets)
 data("instacart")
 instacart_data = instacart
 ```
-Instagart is a dataset that contains 15 variables and 1,384,551 entries describing Instacart customer orders. 
+Instagart is a dataset that contains `r ncol(instacart_data)` variables and `r nrow(instacart_data)` entries describing Instacart customer orders, which are grocery store orders placed online. Each entry represents a single order, and includes information on the user who ordered, the day of week and hour of day when the item was ordered, the order in which the item was added to their cart, and information that categorizes the product into departments and aisles.
 
 - How many aisles are there, and which aisles are the most items ordered from?
 ```{r message = FALSE}
@@ -25,13 +26,13 @@ instacart_aisle = instacart_data %>%
   count(aisle, aisle_id, name = "n_aisle") %>% 
   arrange(desc(n_aisle))
 ```
-There are 134 aisles. The "fresh vegetables" aisle has the most orders, followed by "fresh fruits" and "packaged vegetables fruits."
+There are `r nrow(instacart_aisle)` aisles. The "fresh vegetables" aisle has the most orders, followed by "fresh fruits" and "packaged vegetables fruits."
 
 - Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 ```{r message = FALSE}
 instacart_aisle_plot = instacart_aisle %>% 
   filter(n_aisle > 10000) %>% 
-  mutate(rank = dense_rank(n_aisle))
+  mutate(rank = rank(-n_aisle))
 
 instacart_aisle_plot %>% 
   ggplot(aes(x = rank, y = n_aisle)) + 
@@ -42,7 +43,7 @@ instacart_aisle_plot %>%
     y = "Number of Orders",
     caption = "Data from Instacart")
 ```
-There are 39 aisles with more than 10000 items ordered.
+There are `r nrow(instacart_aisle_plot)` aisles with more than 10000 items ordered.
 (Need help to make it easier to read off plot which items are popular.)
 
 - Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
@@ -82,9 +83,35 @@ instacart_data_1c = instacart_data %>%
   count(aisle, product_name, name = "n_product") %>% 
   arrange(desc(n_product)) %>%
   group_by(aisle) %>% 
-  top_n(n = 3, wt = n_product)
+  top_n(n = 3, wt = n_product) %>% 
+  mutate(
+    rank = rank(-n_product)
+  )
 ```
 These products and counts do not match the individual counts.
+
+Alternate code that gives the same results:
+```{r message = FALSE}
+instacart_data_popular = instacart_data %>% 
+  select(product_name, aisle) %>% 
+  filter(
+    aisle == c("baking ingredients", "dog food care", "packaged vegetables fruits")
+  ) %>% 
+  count(aisle, product_name, name = "n_product")
+
+popular_items_table = instacart_data_popular %>% 
+  group_by(aisle) %>% 
+  mutate(
+    rank = order(order(n_product, decreasing = TRUE))
+  ) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, desc(n_product))
+
+knitr::kable(
+  popular_items_table, caption = 'Most Popular Items by Aisle'
+)
+```
+
 ..........
 instacart_data_1c = instacart_data %>% 
   select(product_name, aisle) %>% 
