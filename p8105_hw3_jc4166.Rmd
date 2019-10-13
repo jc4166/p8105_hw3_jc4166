@@ -185,4 +185,44 @@ brfss_ny %>%
 ```
 
 ## Problem 3
+This data set has 5 weeks worth of accelerometer data from a 63 year old man with congestive heart failure. The data has been tidied, and includes the following variables: week (1-5), day (Monday - Sunday), day_type (weekday or weekend), hour_of_day (0-23), minute_of_day (1-1440), and activity_counts, which counts the activities that occured during the corresponding minute of day. Since it includes 5 weeks of continuous 24-hour-a-day recordings, one would expect 5 weeks x 7 days a week x 1440 minutes a day = 50,400 obersations, which is the exact number of entries in the data set. 
+
+```{r}
+accel_data = read_csv("./data/accel_data.csv") %>% 
+  janitor:: clean_names() %>% 
+  mutate(day_type = ifelse(day %in% c("Saturday", "Sunday"), "weekend", "weekday")) %>%
+  pivot_longer(
+  activity_1:activity_1440, 
+  names_to = "minute", 
+  names_prefix = "activity_", 
+  values_to = "activity_counts")%>% 
+  mutate(minute_of_day = as.numeric(minute)) %>% 
+  mutate(hour_of_day = as.integer(minute_of_day/60)) %>% 
+  select("week", "day", "day_type", "hour_of_day", "minute_of_day", "activity_counts")
+```
+
+I tried to order the "day" variable using the following code within the above code chunk and it seemed to do nothing:
+mutate(day = as.factor(day)) %>% 
+  group_by(week) %>% 
+  mutate(day = ordered(day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+
+
+- The following table show the average total activity count per day of week for the duration of the study. Saturday has the lowest activity count, and Friday the highest.
+```{r}
+accel_data %>% 
+  group_by(day) %>% 
+  summarize(total_activity = mean(activity_counts)) %>% 
+  knitr::kable(caption = 'Average Activity Count Per Day of Week')
+```
+
+- The following graph shows the 24-hour activity time courses for each day of the week. Overall, the majority of activity occurs between 5am and 8pm, with a decrease around lunch time (as might be expected). It is possible he may participate in some kind of activity that increases his physical activity at certain times of week; for example, he has a lot of activity on Wednesday evenings and Sunday mornings. The day of the week that seems to have overall the lowest activity count throught the day is Tuesday.
+```{r}
+accel_data %>%
+  ggplot(aes(x = hour_of_day, y = activity_counts, color = day)) + 
+  geom_line() + 
+  labs(
+    title = "Activity Counts Over 24 Hour Period",
+    x = "Hour of Day",
+    y = "Activity Count")
+```
 
